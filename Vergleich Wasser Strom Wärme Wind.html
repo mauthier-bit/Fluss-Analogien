@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physikalische Analogien – Wasser · Strom · Wärme</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#07090f; --bg2:#0c1220; --bg3:#111a2e;
+  --blue:#2196f3; --amber:#f59e0b; --red:#ef4444;
+  --dim:#3a5070; --white:#d0e4ff;
+  --w-col:#2196f3; --e-col:#f59e0b; --h-col:#ef4444;
+}
+body{
+  font-family:'Lato',sans-serif;
+  background:var(--bg);color:var(--white);
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;overflow-x:hidden;
+}
+#app{width:100%;max-width:960px;padding:16px 12px 32px;}
+
+/* HEADER */
+#hdr{text-align:center;margin-bottom:16px;}
+#hdr h1{
+  font-family:'Space Mono',monospace;font-size:1.35rem;
+  font-weight:700;letter-spacing:.04em;
+  color:var(--white);margin-bottom:4px;
+}
+#scene-desc{
+  font-size:.85rem;color:var(--dim);min-height:20px;
+  letter-spacing:.04em;margin-bottom:14px;
+}
+
+/* TABS */
+#tabs{display:flex;gap:6px;justify-content:center;margin-bottom:10px;}
+.tab{
+  font-family:'Space Mono',monospace;font-size:.72rem;
+  padding:8px 18px;border-radius:4px;cursor:pointer;
+  border:1.5px solid var(--dim);background:rgba(255,255,255,.03);
+  color:var(--dim);transition:all .25s;letter-spacing:.06em;
+}
+.tab:hover{border-color:rgba(255,255,255,.3);color:var(--white);}
+.tab.water.active{border-color:var(--blue);color:var(--blue);
+  background:rgba(33,150,243,.12);}
+.tab.elec.active{border-color:var(--amber);color:var(--amber);
+  background:rgba(245,158,11,.1);}
+.tab.heat.active{border-color:var(--red);color:var(--red);
+  background:rgba(239,68,68,.1);}
+.tab.weather.active{border-color:#29b6f6;color:#29b6f6;
+  background:rgba(41,182,246,.1);}
+
+/* CANVAS */
+#canvas-wrap{position:relative;width:100%;border-radius:8px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.06);background:var(--bg);}
+#canvas{display:block;width:100%;height:auto;}
+
+/* CONTROLS – see also #ctrl-btns / #ctrl-right below */
+.ctrl-btn{
+  font-family:'Space Mono',monospace;font-size:.75rem;
+  padding:10px 22px;border-radius:4px;cursor:pointer;
+  border:1.5px solid;transition:all .2s;letter-spacing:.06em;
+  display:flex;align-items:center;gap:8px;
+}
+#valve-btn{
+  border-color:rgba(239,68,68,.5);color:#ef4444;
+  background:rgba(239,68,68,.08);
+  box-shadow:0 0 12px rgba(239,68,68,.15);
+}
+#valve-btn.open{
+  border-color:rgba(74,222,128,.6);color:#4ade80;
+  background:rgba(74,222,128,.08);
+  box-shadow:0 0 16px rgba(74,222,128,.2);
+}
+#reset-btn{
+  border-color:var(--dim);color:var(--dim);background:transparent;
+}
+#reset-btn:hover{border-color:rgba(255,255,255,.4);color:var(--white);}
+#label-btn{
+  border-color:rgba(139,92,246,.45);color:rgba(167,139,250,.9);
+  background:rgba(139,92,246,.07);
+}
+#label-btn:hover{border-color:rgba(167,139,250,.7);color:rgba(196,181,253,1);}
+#label-btn.off{
+  border-color:var(--dim);color:var(--dim);background:transparent;
+}
+#table-btn{
+  border-color:rgba(20,184,166,.45);color:rgba(45,212,191,.9);
+  background:rgba(20,184,166,.07);
+}
+#table-btn:hover{border-color:rgba(45,212,191,.7);color:rgba(94,234,212,1);}
+#table-btn.off{
+  border-color:var(--dim);color:var(--dim);background:transparent;
+}
+#status{
+  font-family:'Space Mono',monospace;font-size:.7rem;
+  color:#8ab4d8;padding:8px 16px;
+  border:1px solid rgba(255,255,255,.06);border-radius:4px;
+  min-width:180px;text-align:center;
+}
+
+/* SLIDER PANEL */
+#slider-panel{
+  display:flex;gap:24px;flex-wrap:wrap;
+  margin-top:12px;padding:14px 20px;
+  border:1px solid rgba(255,255,255,.06);border-radius:6px;
+  background:rgba(255,255,255,.02);
+}
+.sl-group{display:flex;flex-direction:column;gap:10px;flex:1;min-width:240px;}
+.sl-row{display:flex;align-items:center;gap:10px;}
+.sl-label{
+  font-family:'Space Mono',monospace;font-size:.65rem;
+  color:#8ab4d8;letter-spacing:.06em;
+  white-space:nowrap;min-width:130px;
+}
+.sl-range{
+  flex:1;height:4px;cursor:pointer;accent-color:var(--blue);
+  background:rgba(255,255,255,.08);border-radius:2px;
+}
+.sl-val{
+  font-family:'Space Mono',monospace;font-size:.68rem;
+  color:var(--white);min-width:52px;text-align:right;
+}
+
+/* ANALOGY TABLE */
+#analogy-wrap{margin-top:20px;}
+#analogy-wrap h2{
+  font-family:'Space Mono',monospace;font-size:.8rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px;text-align:center;
+}
+table{width:100%;border-collapse:collapse;font-size:.97rem;}
+th{
+  font-family:'Space Mono',monospace;font-size:.78rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);
+  text-align:left;
+}
+th.col-w{color:var(--blue);}
+th.col-e{color:var(--amber);}
+th.col-h{color:var(--red);}
+th.col-wx{color:#29b6f6;}
+td{
+  padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.04);
+  line-height:1.4;
+}
+tr:hover td{background:rgba(255,255,255,.02);}
+td.role{
+  font-family:'Space Mono',monospace;font-size:.68rem;
+  color:#8ab4d8;letter-spacing:.04em;
+}
+td.col-w{color:rgba(100,180,255,.9);}
+td.col-e{color:rgba(255,210,80,.9);}
+td.col-h{color:rgba(255,130,100,.9);}
+td.col-wx{color:rgba(79,195,247,.9);}
+td.hl-w{background:rgba(33,150,243,.06);}
+td.hl-e{background:rgba(245,158,11,.06);}
+td.hl-h{background:rgba(239,68,68,.06);}
+td.hl-wx{background:rgba(41,182,246,.06);}
+
+/* Slider column header */
+.sl-col-hdr{
+  font-family:'Space Mono',monospace;font-size:.65rem;
+  font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:#8ab4d8;padding-bottom:6px;text-align:center;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  margin-bottom:4px;
+}
+/* Speed slider inline in controls bar */
+#speed-inline{
+  display:flex;align-items:center;gap:10px;
+  border:1px solid rgba(255,255,255,.07);border-radius:4px;
+  padding:6px 16px;min-width:260px;
+}
+#speed-inline .sl-label{min-width:110px;color:#8ab4d8;}
+#speed-inline .sl-val{min-width:88px;white-space:nowrap;text-align:left;}
+/* Controls bar: buttons left, speed+status right */
+#controls{
+  display:flex;align-items:center;
+  justify-content:space-between;gap:12px;
+  margin-top:12px;flex-wrap:wrap;
+}
+#ctrl-btns{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+#ctrl-right{display:flex;align-items:center;gap:12px;}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="hdr">
+    <h1>Physikalische Analogien</h1>
+    <div id="scene-desc">Wähle eine Szene und öffne das Ventil</div>
+    <div id="tabs">
+      <button class="tab water active" data-idx="0">💧 Wasser</button>
+      <button class="tab elec"         data-idx="1">⚡ Elektrizität</button>
+      <button class="tab heat"         data-idx="2">🔥 Wärme</button>
+      <button class="tab weather"      data-idx="3">🌬️ Wetter</button>
+    </div>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="canvas" width="920" height="460"></canvas>
+  </div>
+
+  <div id="controls">
+    <div id="ctrl-btns">
+      <button class="ctrl-btn" id="valve-btn">🔒 &nbsp;Ventil öffnen</button>
+      <button class="ctrl-btn" id="reset-btn">↺ &nbsp;Zurücksetzen</button>
+      <button class="ctrl-btn" id="label-btn">🏷️ &nbsp;Beschriftung aus</button>
+      <button class="ctrl-btn off" id="table-btn">📋 &nbsp;Tabelle einblenden</button>
+    </div>
+    <div id="ctrl-right">
+      <div id="speed-inline">
+        <label class="sl-label">Geschwindigkeit</label>
+        <input type="range" class="sl-range" id="sl-speed" min="1" max="10" value="4" step="1">
+        <span class="sl-val" id="sl-speed-val">mittel</span>
+      </div>
+      <div id="status">Ventil geschlossen</div>
+    </div>
+  </div>
+
+  <div id="slider-panel">
+    <!-- Linkes Reservoir -->
+    <div class="sl-group">
+      <div class="sl-col-hdr">Linkes Reservoir</div>
+      <div class="sl-row">
+        <label class="sl-label">Anfangsfüllstand</label>
+        <input type="range" class="sl-range" id="sl-lvl-l" min="10" max="97" value="80" step="1">
+        <span class="sl-val" id="sl-lvl-l-val">80 %</span>
+      </div>
+      <div class="sl-row">
+        <label class="sl-label">Menge (Breite)</label>
+        <input type="range" class="sl-range" id="sl-cap-l" min="1" max="10" value="5" step="1">
+        <span class="sl-val" id="sl-cap-l-val">mittel</span>
+      </div>
+    </div>
+    <!-- Rechtes Reservoir -->
+    <div class="sl-group">
+      <div class="sl-col-hdr">Rechtes Reservoir</div>
+      <div class="sl-row">
+        <label class="sl-label">Anfangsfüllstand</label>
+        <input type="range" class="sl-range" id="sl-lvl-r" min="3" max="90" value="12" step="1">
+        <span class="sl-val" id="sl-lvl-r-val">12 %</span>
+      </div>
+      <div class="sl-row">
+        <label class="sl-label">Menge (Breite)</label>
+        <input type="range" class="sl-range" id="sl-cap-r" min="1" max="10" value="2" step="1">
+        <span class="sl-val" id="sl-cap-r-val">klein</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="analogy-wrap" style="display:none">
+    <h2>Analogietabelle – alle vier Analogien im Vergleich</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="color:var(--dim);width:17%">Rolle</th>
+          <th class="col-w">💧 Wasser</th>
+          <th class="col-e">⚡ Elektrizität</th>
+          <th class="col-h">🔥 Wärme</th>
+          <th class="col-wx">🌬️ Wetter</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="role">Reservoir-Inhalt</td>
+          <td class="col-w">Wasservolumen V</td>
+          <td class="col-e">Ladung Q</td>
+          <td class="col-h">innere Energie E_i</td>
+          <td class="col-wx">Luftmasse (Volumen)</td>
+        </tr>
+        <tr>
+          <td class="role">Antrieb</td>
+          <td class="col-w">Höhenunterschied h</td>
+          <td class="col-e">Spannung U</td>
+          <td class="col-h">Temperaturunterschied ΔT</td>
+          <td class="col-wx">Druckunterschied Δp</td>
+        </tr>
+        <tr>
+          <td class="role">Strom</td>
+          <td class="col-w">Volumenstrom V/t</td>
+          <td class="col-e">el. Strom I = Q/t</td>
+          <td class="col-h">Wärmestrom Q = E_i/t</td>
+          <td class="col-wx">Wind (Luftströmung)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   PHYSIKALISCHE ANALOGIEN – Animiertes Erklärvideo
+   Wasser / Elektrizität / Wärme
+   ══════════════════════════════════════════════════════════ */
+
+// ── Canvas setup ─────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+const CW = canvas.width;   // 920
+const CH = canvas.height;  // 460
+
+// ── Geometrie ────────────────────────────────────────────
+const G = {
+  // Linkes Reservoir – breiter (mehr Menge)
+  lCX : 195,     // center-x
+  lHW : 72,      // half-width   → Breite = 144 px
+  // Rechtes Reservoir – schmaler
+  rCX : 725,     // center-x
+  rHW : 42,      // half-width   → Breite = 84 px
+  // Gemeinsame Höhe
+  baseY : 370,   // Boden y
+  topY  : 68,    // Deckel y
+  eRY   : 14,    // Ellipsen-Y-Radius (3-D-Effekt)
+  // Rohr
+  pipeY : 356,
+  pipeH : 22,
+  pX1   : 267,   // Rohr-Anfang x
+  pX2   : 683,   // Rohr-Ende x
+  // Ventil
+  vCX   : 475,
+};
+G.maxH  = G.baseY - G.topY;   // 302 px
+G.vCY   = G.pipeY;
+
+// Abgeleitete Geometrie neu berechnen (nach jeder Breiten-Änderung aufrufen)
+function updateGeometry() {
+  G.pX1 = G.lCX + G.lHW;                          // Rohr-Anfang
+  G.pX2 = G.rCX - G.rHW;                          // Rohr-Ende
+  G.vCX = Math.round((G.pX1 + G.pX2) / 2);        // Ventil bleibt mittig
+}
+
+// ── Zustand ───────────────────────────────────────────────
+let state = {
+  sceneIdx : 0,
+  lvL      : 0.80,
+  lvR      : 0.12,
+  valve    : false,
+  vAnim    : 0,
+  particles: [],
+  lastT    : null,
+  equi     : false,
+  showLabels: true,
+};
+const SCENES = [
+  {
+    id    : 0,
+    potSym: 'V',
+    drSym : 'Δh',
+    flSym : 'V̇',
+    flName: 'Volumenstrom',
+    gName : 'Ventil',
+    lTitle: 'Linkes Reservoir',
+    rTitle: 'Rechtes Reservoir',
+    cDesc : 'Der Höhenunterschied Δh zwischen den Wasserspiegeln treibt den Volumenstrom V̇ an. ' +
+            'Je größer Δh, desto stärker fließt das Wasser.',
+    formula: 'V̇ ∝ Δh',
+    fillL : '#1565c0', fillR : '#1565c0',
+    surfL : '#64b5f6', surfR : '#64b5f6',
+    partC : '#90caf9',
+    wallC : 'rgba(100,181,246,0.70)',
+    bgL   : 'rgba(21,101,192,0.06)',
+    bgR   : 'rgba(21,101,192,0.06)',
+    accentColor: '#2196f3',
+    equiNote: 'Die Wasserspiegel haben sich angeglichen – kein Fluss mehr.',
+  },
+  {
+    id    : 1,
+    potSym: 'Q',
+    drSym : 'ΔU',
+    flSym : 'I',
+    flName: 'elektrischer Strom',
+    gName : 'Schalter',
+    lTitle: 'Höheres Potential',
+    rTitle: 'Niedrigeres Potential',
+    cDesc : 'Die Spannung U zwischen den Polen treibt den elektrischen Strom I an. ' +
+            'Der Strom fließt, bis beide auf gleichem Potential sind.',
+    formula: 'I = ΔU / R',
+    fillL : '#6d3900', fillR : '#6d3900',
+    surfL : '#fbbf24', surfR : '#fbbf24',
+    partC : '#fde68a',
+    wallC : 'rgba(251,191,36,0.65)',
+    bgL   : 'rgba(109,57,0,0.06)',
+    bgR   : 'rgba(109,57,0,0.06)',
+    accentColor: '#f59e0b',
+    equiNote: 'Die Spannung ist ausgeglichen – kein Strom mehr.',
+  },
+  {
+    id    : 2,
+    potSym: 'E_i',
+    drSym : 'ΔT',
+    flSym : 'Q',
+    flName: 'Wärmestrom',
+    gName : 'Wärmeleitung',
+    lTitle: 'Warmes Reservoir',
+    rTitle: 'Kaltes Reservoir',
+    cDesc : 'Der Temperaturunterschied ΔT treibt den Wärmestrom vom warmen zum kalten Reservoir. ' +
+            'Am Ende haben beide die gleiche Temperatur.',
+    formula: 'Q̇ = ΔT / R_th',
+    // Füllfarben dynamisch (temperaturabhängig)
+    partC : '#fb923c',
+    wallC : 'rgba(200,140,90,0.65)',
+    accentColor: '#ef4444',
+    equiNote: 'Die Temperaturen sind ausgeglichen – kein Wärmestrom mehr.',
+  },
+  {
+    id    : 3,
+    potSym: 'V',
+    drSym : 'Δp',
+    flSym : 'v',
+    flName: 'Wind',
+    gName : 'Druckausgleich',
+    lTitle: 'Hochdruckgebiet',
+    rTitle: 'Tiefdruckgebiet',
+    cDesc : 'Der Druckunterschied Δp treibt den Wind vom Hoch- zum Tiefdruckgebiet. ' +
+            'Am Ende herrscht überall der gleiche Luftdruck.',
+    formula: 'v ∝ Δp',
+    fillL : 'rgba(79,195,247,0.42)', fillR : 'rgba(79,195,247,0.42)',
+    surfL : 'rgba(179,229,252,0.65)', surfR : 'rgba(179,229,252,0.65)',
+    partC : '#e1f5fe',
+    wallC : 'rgba(129,212,250,0.65)',
+    bgL   : 'rgba(1,87,155,0.06)',
+    bgR   : 'rgba(1,87,155,0.06)',
+    accentColor: '#29b6f6',
+    equiNote: 'Der Luftdruck ist ausgeglichen – kein Wind mehr.',
+  },
+];
+
+// ── Hilfsfunktionen ───────────────────────────────────────
+
+function hexToRGB(hex) {
+  return [
+    parseInt(hex.slice(1,3),16),
+    parseInt(hex.slice(3,5),16),
+    parseInt(hex.slice(5,7),16),
+  ];
+}
+function hexA(hex, a) {
+  const [r,g,b] = hexToRGB(hex);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function lerpColor(hexA_, hexB, t) {
+  const a = hexToRGB(hexA_), b = hexToRGB(hexB);
+  const r = Math.round(a[0]+(b[0]-a[0])*t);
+  const g = Math.round(a[1]+(b[1]-a[1])*t);
+  const bv= Math.round(a[2]+(b[2]-a[2])*t);
+  return `rgb(${r},${g},${bv})`;
+}
+
+// Wärme-Farbe abhängig von Temperaturniveau (level 0=kalt,1=heiß)
+// Übergang: tiefblau → orange → sattrot (ohne Lila)
+function heatColor(level, alpha=1) {
+  let r, g, b;
+  const t = Math.max(0, Math.min(1, level));
+  if (t <= 0.5) {
+    // Kalt→Warm: blau (#1565c0) → orange (#e65100)
+    const u = t * 2;
+    r = Math.round(21  + (230-21)  * u);
+    g = Math.round(101 + (81-101)  * u);
+    b = Math.round(192 + (0-192)   * u);
+  } else {
+    // Warm→Heiß: orange (#e65100) → sattrot (#b71c1c)
+    const u = (t - 0.5) * 2;
+    r = Math.round(230 + (183-230) * u);
+    g = Math.round(81  + (28-81)   * u);
+    b = Math.round(0   + (28-0)    * u);
+  }
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── Physik ────────────────────────────────────────────────
+
+let kFlow  = 0.28;   // Flusskoeffizient (per Regler veränderbar)
+let lvlL0  = 0.80;   // Startwert linkes Reservoir
+let lvlR0  = 0.12;   // Startwert rechtes Reservoir
+function calcEq() {
+  return (G.lHW * lvlL0 + G.rHW * lvlR0) / (G.lHW + G.rHW);
+}
+
+function updatePhysics(dt) {
+  // Ventil-Animation
+  const tgt = state.valve ? 1 : 0;
+  state.vAnim += (tgt - state.vAnim) * Math.min(1, dt * 7);
+
+  if (!state.valve || state.equi) return;
+
+  const dh = state.lvL - state.lvR;
+  if (Math.abs(dh) < 0.0025) {
+    // Gleichgewicht einrasten (volumenerhaltend)
+    const eq = (G.lHW * state.lvL + G.rHW * state.lvR) / (G.lHW + G.rHW);
+    state.lvL = state.lvR = eq;
+    state.equi = true;
+    updateStatus();
+    return;
+  }
+
+  // Volumenstrom-Update: volumenneutral
+  const flow = kFlow * dh * dt;
+  state.lvL -= flow / G.lHW;
+  state.lvR += flow / G.rHW;
+  state.lvL = Math.max(0, Math.min(1, state.lvL));
+  state.lvR = Math.max(0, Math.min(1, state.lvR));
+}
+
+// ── Partikel ──────────────────────────────────────────────
+
+function spawnParticles(dt) {
+  const dh = state.lvL - state.lvR;
+  if (!state.valve || Math.abs(dh) < 0.005 || state.vAnim < 0.5) return;
+
+  const rate = Math.abs(dh) * 18;   // Partikel/Sekunde
+  const n    = Math.floor(rate * dt + Math.random());
+  for (let i=0; i<n; i++) {
+    const dir = dh > 0 ? 1 : -1;
+    const spd = 90 + Math.abs(dh) * 180;
+    state.particles.push({
+      x    : dir>0 ? G.pX1+8 : G.pX2-8,
+      y    : G.pipeY + (Math.random()-0.5)*(G.pipeH-10),
+      vx   : dir * spd,
+      alpha: 1.0,
+      r    : 3 + Math.random()*2,
+    });
+  }
+  if (state.particles.length > 60) state.particles.splice(0, state.particles.length-60);
+}
+
+function updateParticles(dt) {
+  const flowing = state.valve && !state.equi;
+  state.particles = state.particles.filter(p => {
+    p.x     += p.vx * dt;
+    p.alpha -= dt * (flowing ? 0.8 : 3);
+    return p.alpha > 0 && p.x > G.pX1 && p.x < G.pX2;
+  });
+}
+
+// ── Zeichnen ──────────────────────────────────────────────
+
+// Gitter aus Ladungssymbolen (+/−) in einem Bereich des Zylinders
+function drawChargeGrid(cx, hW, yBottom, yTop, symbol, color, size) {
+  if (yTop >= yBottom - 4) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(cx - hW + 3, yTop, hW * 2 - 6, yBottom - yTop);
+  ctx.clip();
+  ctx.fillStyle = color;
+  ctx.font = `bold ${size}px "Space Mono", monospace`;
+  ctx.textAlign = 'center';
+  const spacing = size * 1.25;
+  let row = 0;
+  for (let y = yBottom - size * 0.5; y > yTop + 2; y -= spacing, row++) {
+    const xOffset = (row % 2 === 0) ? 0 : spacing * 0.5;
+    for (let x = cx - hW + size + xOffset; x <= cx + hW - size * 0.5; x += spacing) {
+      ctx.fillText(symbol, x, y);
+    }
+  }
+  ctx.restore();
+}
+
+function drawBG() {
+  ctx.fillStyle = '#07090f';
+  ctx.fillRect(0, 0, CW, CH);
+  // Blueprint-Gitter
+  ctx.strokeStyle = 'rgba(0,120,255,0.035)';
+  ctx.lineWidth = 1;
+  for (let x=0; x<CW; x+=44) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH); ctx.stroke(); }
+  for (let y=0; y<CH; y+=44) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
+}
+
+// Zeichne einen Zylinder (Reservoir)
+function drawReservoir(cx, hW, level, scene, side) {
+  const eRY  = G.eRY;
+  const baseY = G.baseY;
+  const topY  = G.topY;
+  const maxH  = G.maxH;
+  const surfY = baseY - level * maxH;  // Y der Oberfläche
+
+  // Hintergrund-Tinte des Zylinders
+  ctx.fillStyle = side==='L'
+    ? (scene.bgL || 'rgba(255,255,255,0.02)')
+    : (scene.bgR || 'rgba(255,255,255,0.02)');
+  ctx.fillRect(cx-hW, topY+eRY, hW*2, maxH-eRY);
+
+  // ── Positive Ladungen (Atomrümpfe) als Hintergrund – Elektrizität ──
+  // Werden in BEIDEN Reservoiren von Boden bis zum Gleichgewichtsniveau gezeichnet.
+  // Die Füllfarbe (Elektronen) überdeckt sie anschließend im gedeckten Bereich.
+  // Sichtbar bleiben sie nur dort, wo Elektronen fehlen (rechts, über Füllstand).
+  if (scene.id === 1) {
+    const eqYbg = G.baseY - calcEq() * G.maxH;
+    drawChargeGrid(cx, hW, G.baseY, eqYbg, '+', 'rgba(74,222,128,0.65)', 17);
+  }
+
+  // ── Füllfarbe ─────────────────────────────────────────
+  if (level > 0.005) {
+    ctx.save();
+    // Clip auf Rechteck des Zylinder-Inneren
+    ctx.beginPath();
+    ctx.rect(cx - hW, topY + eRY, hW*2, maxH - eRY + 2);
+    ctx.clip();
+
+    if (scene.id === 2) {
+      // Wärme: Gradient basierend auf aktuellem Füllstand (= Temperatur)
+      // Boden etwas kühler als Oberfläche → natürlicher 3-D-Effekt
+      const colSurf = heatColor(level,           1.0);
+      const colBase = heatColor(Math.max(0, level - 0.35), 0.85);
+      const grad = ctx.createLinearGradient(cx, baseY, cx, surfY);
+      grad.addColorStop(0, colBase);
+      grad.addColorStop(1, colSurf);
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = side==='L' ? scene.fillL : scene.fillR;
+    }
+    ctx.fillRect(cx-hW, surfY, hW*2, baseY - surfY + eRY + 4);
+    ctx.restore();
+
+    // Oberflächen-Ellipse (Wasser-/Füll-Spiegel)
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, surfY, hW, eRY, 0, 0, Math.PI*2);
+    if (scene.id === 2) {
+      ctx.fillStyle = heatColor(level, 0.95);
+    } else {
+      ctx.fillStyle = side==='L' ? scene.surfL : scene.surfR;
+    }
+    ctx.fill();
+    // Glanz-Streifen auf Oberfläche
+    ctx.beginPath();
+    ctx.ellipse(cx, surfY, hW*0.55, eRY*0.45, 0, Math.PI, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const wC = scene.wallC || 'rgba(150,200,255,0.7)';
+
+  // Boden-Ellipse
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY, hW, eRY, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(8,12,28,0.95)';
+  ctx.fill();
+  ctx.strokeStyle = wC;
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+
+  // Seitenwände
+  ctx.beginPath();
+  ctx.moveTo(cx-hW, topY+eRY);
+  ctx.lineTo(cx-hW, baseY);
+  ctx.strokeStyle = wC;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx+hW, topY+eRY);
+  ctx.lineTo(cx+hW, baseY);
+  ctx.stroke();
+
+  // Oberer Rand (Öffnung, gestrichelt)
+  ctx.beginPath();
+  ctx.ellipse(cx, topY+eRY, hW, eRY, 0, 0, Math.PI*2);
+  ctx.setLineDash([5,4]);
+  ctx.strokeStyle = wC;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Glasglanz-Streifen (linke Seite der Wand)
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(cx-hW, topY+eRY, hW*2, maxH-eRY);
+  ctx.clip();
+  const gloss = ctx.createLinearGradient(cx-hW, 0, cx+hW, 0);
+  gloss.addColorStop(0,    'rgba(255,255,255,0.07)');
+  gloss.addColorStop(0.12, 'rgba(255,255,255,0.04)');
+  gloss.addColorStop(0.3,  'rgba(255,255,255,0)');
+  gloss.addColorStop(1,    'rgba(0,0,0,0.1)');
+  ctx.fillStyle = gloss;
+  ctx.fillRect(cx-hW, topY+eRY, hW*2, maxH-eRY);
+  ctx.restore();
+
+  // ── Elektrizität: farbige 3-D-Zonen + Ladungssymbole ─────
+  if (scene.id === 1) {
+    const eqY   = G.baseY - calcEq() * G.maxH;
+    const currY = G.baseY - level * G.maxH;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cx - hW + 2, topY + eRY, hW * 2 - 4, maxH - eRY);
+    ctx.clip();
+
+    if (side === 'L' && currY < eqY) {
+      // ── Rote 3-D-Zone: Elektronenüberschuss ──────────────
+      // Körper: horizontaler Gradient (wirkt wie Zylinderoberfläche)
+      const gLH = ctx.createLinearGradient(cx - hW, 0, cx + hW, 0);
+      gLH.addColorStop(0,    'rgba(220,40,40,0.50)');
+      gLH.addColorStop(0.12, 'rgba(220,40,40,0.32)');
+      gLH.addColorStop(0.88, 'rgba(180,25,25,0.28)');
+      gLH.addColorStop(1,    'rgba(160,20,20,0.48)');
+      ctx.fillStyle = gLH;
+      ctx.fillRect(cx - hW, currY, hW * 2, eqY - currY);
+
+      // Untere Grenzellipse (Gleichgewichtslinie, sichtbar als "Boden" der Zone)
+      ctx.beginPath();
+      ctx.ellipse(cx, eqY, hW, eRY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(180,30,30,0.50)';
+      ctx.fill();
+
+      // Obere Ellipse (Elektronenoberfläche, überlagert Amberoberfläche)
+      ctx.beginPath();
+      ctx.ellipse(cx, currY, hW, eRY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(230,55,55,0.55)';
+      ctx.fill();
+      // Glanzstreifen oben
+      ctx.beginPath();
+      ctx.ellipse(cx, currY, hW * 0.52, eRY * 0.42, 0, Math.PI, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,150,150,0.22)';
+      ctx.fill();
+    }
+
+    if (side === 'R' && currY > eqY) {
+      // ── Grüne 3-D-Zone: Elektronenmangel ─────────────────
+      const gRH = ctx.createLinearGradient(cx - hW, 0, cx + hW, 0);
+      gRH.addColorStop(0,    'rgba(30,200,90,0.50)');
+      gRH.addColorStop(0.12, 'rgba(30,200,90,0.30)');
+      gRH.addColorStop(0.88, 'rgba(20,160,70,0.26)');
+      gRH.addColorStop(1,    'rgba(15,140,60,0.46)');
+      ctx.fillStyle = gRH;
+      ctx.fillRect(cx - hW, eqY, hW * 2, currY - eqY);
+
+      // Untere Grenzellipse (Amberoberfläche = "Boden" der Mangelzone)
+      ctx.beginPath();
+      ctx.ellipse(cx, currY, hW, eRY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(20,160,70,0.45)';
+      ctx.fill();
+
+      // Obere Ellipse (Oberfläche der Mangelzone)
+      ctx.beginPath();
+      ctx.ellipse(cx, eqY, hW, eRY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(50,220,100,0.55)';
+      ctx.fill();
+      // Glanzstreifen oben
+      ctx.beginPath();
+      ctx.ellipse(cx, eqY, hW * 0.52, eRY * 0.42, 0, Math.PI, Math.PI * 2);
+      ctx.fillStyle = 'rgba(150,255,180,0.22)';
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    // Ladungssymbole: nur "−" auf dem linken Überschuss-Bereich
+    if (side === 'L' && currY < eqY) {
+      drawChargeGrid(cx, hW, eqY, currY, '−', 'rgba(255,90,90,0.95)', 19);
+    }
+    // Rechts: nur ortsfeste "+" (als Hintergrundgitter gezeichnet, keine Extra-Symbole)
+  }
+}
+
+// Pegel-Markierungen und Labels am Reservoir
+function drawReservoirLabels(cx, hW, level, scene, side) {
+  const baseY = G.baseY;
+  const surfY = baseY - level * G.maxH;
+  const potSym = scene.potSym;
+  const pct = Math.round(level * 100);
+
+  // Gestrichelte Linie an Oberfläche
+  ctx.beginPath();
+  ctx.setLineDash([3,3]);
+  ctx.strokeStyle = 'rgba(200,220,255,0.35)';
+  ctx.lineWidth = 1;
+  ctx.moveTo(cx - hW - 2, surfY);
+  ctx.lineTo(cx + hW + 2, surfY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Potential-Label
+  ctx.fillStyle = 'rgba(200,225,255,0.85)';
+  ctx.font = '18px "Space Mono", monospace';
+  ctx.textAlign = side==='L' ? 'right' : 'left';
+  const xLabel = side==='L' ? cx-hW-8 : cx+hW+8;
+  ctx.fillText(`${potSym} = ${pct}%`, xLabel, surfY+4);
+
+  // Titel oben
+  ctx.fillStyle = 'rgba(160,190,230,0.7)';
+  ctx.font = '16px Lato, sans-serif';
+  ctx.textAlign = 'center';
+  const titleStr = side==='L' ? scene.lTitle : scene.rTitle;
+  ctx.fillText(titleStr, cx, G.topY - 10);
+
+  // ── Szenenspezifische Beschriftungen innerhalb des Zylinders ──
+
+  if (scene.id === 1) {
+    const pole    = side === 'L' ? '−' : '+';
+    const poleTxt = side === 'L' ? 'Minuspol' : 'Pluspol';
+    const poleClr = side === 'L' ? 'rgba(239,100,100,0.92)' : 'rgba(74,222,128,0.92)';
+    ctx.fillStyle = poleClr;
+    ctx.font = 'bold 48px "Space Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(pole, cx, G.topY + 74);
+    ctx.font = '15px Lato, sans-serif';
+    ctx.fillText(poleTxt, cx, G.topY + 92);
+  }
+
+  if (scene.id === 2) {
+    const hkLabel = side === 'L' ? 'heiß' : 'kalt';
+    const hkColor = side === 'L' ? 'rgba(239,100,68,0.90)' : 'rgba(96,165,250,0.90)';
+    ctx.fillStyle = hkColor;
+    ctx.font = 'bold 20px Lato, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(hkLabel, cx, G.topY + 58);
+  }
+
+  if (scene.id === 3) {
+    // Wetter: H (Hoch) / T (Tief) wie auf Wetterkarten
+    const sym   = side === 'L' ? 'H' : 'T';
+    const sub   = side === 'L' ? 'Hoch' : 'Tief';
+    const clr   = side === 'L' ? 'rgba(255,120,20,0.92)' : 'rgba(41,182,246,0.92)';
+    ctx.fillStyle = clr;
+    ctx.font = 'bold 48px "Space Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(sym, cx, G.topY + 74);
+    ctx.font = '15px Lato, sans-serif';
+    ctx.fillText(sub, cx, G.topY + 92);
+  }
+}
+
+// Doppelpfeil für Δ zwischen linkem und rechtem Spiegel
+function drawDeltaArrow(scene) {
+  const lvL = state.lvL, lvR = state.lvR;
+  const surfLY = G.baseY - lvL * G.maxH;
+  const surfRY = G.baseY - lvR * G.maxH;
+  const dh = Math.abs(lvL - lvR);
+
+  // Nur bei exakt gleichem Stand ausblenden, sonst immer zeichnen
+  if (dh < 0.0008) return;
+
+  const xA  = (G.lCX + G.rCX) / 2;
+  const col  = scene.accentColor || '#2196f3';
+
+  // ── Waagrechte Pegelstandslinien (kräftiger) ─────────────
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 4]);
+
+  ctx.strokeStyle = hexA(col, 0.70);
+  ctx.beginPath();
+  ctx.moveTo(G.lCX + G.lHW + 3, surfLY);
+  ctx.lineTo(xA - 3, surfLY);
+  ctx.stroke();
+
+  ctx.strokeStyle = hexA(col, 0.70);
+  ctx.beginPath();
+  ctx.moveTo(G.rCX - G.rHW - 3, surfRY);
+  ctx.lineTo(xA + 3, surfRY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── Vertikaler Doppelpfeil (nur wenn Abstand groß genug) ──
+  const dy   = 6;
+  const yTop = Math.min(surfLY, surfRY) + dy;
+  const yBot = Math.max(surfLY, surfRY) - dy;
+
+  if (yBot - yTop > 8) {
+    ctx.beginPath();
+    ctx.strokeStyle = hexA(col, 0.70);
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.moveTo(xA, yTop);
+    ctx.lineTo(xA, yBot);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Pfeilspitzen
+    const drawTip = (y, up) => {
+      const d = up ? -7 : 7;
+      ctx.beginPath();
+      ctx.strokeStyle = hexA(col, 0.90);
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(xA,     y);
+      ctx.lineTo(xA - 5, y - d);
+      ctx.moveTo(xA,     y);
+      ctx.lineTo(xA + 5, y - d);
+      ctx.stroke();
+    };
+    drawTip(yTop, true);
+    drawTip(yBot, false);
+  }
+
+  // ── Label: immer anzeigen, mittig zwischen den beiden Linien ──
+  const midY     = (surfLY + surfRY) / 2;
+  const pct      = Math.round(dh * 100);
+  const arrowSym = (scene.id === 1) ? 'U' : scene.drSym;
+  ctx.fillStyle  = hexA(col, 0.95);
+  ctx.font       = 'bold 17px "Space Mono", monospace';
+  ctx.textAlign  = 'left';
+  ctx.fillText(`${arrowSym} = ${pct}%`, xA + 10, midY + 6);
+}
+
+// Verbindungsrohr
+function drawPipe(scene) {
+  const x1 = G.pX1, x2 = G.pX2;
+  const py = G.pipeY, ph = G.pipeH;
+
+  // Rohr-Körper
+  const g = ctx.createLinearGradient(0, py-ph/2, 0, py+ph/2);
+  g.addColorStop(0,   '#1a2840');
+  g.addColorStop(0.35,'#233555');
+  g.addColorStop(0.65,'#1e3050');
+  g.addColorStop(1,   '#0a1520');
+  ctx.fillStyle = g;
+  ctx.fillRect(x1, py-ph/2, x2-x1, ph);
+  ctx.strokeStyle = 'rgba(60,110,180,0.45)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x1, py-ph/2, x2-x1, ph);
+
+  // Partikel zeichnen
+  const pCol = scene.partC || '#7dd4fc';
+  const [pr,pg,pb] = hexToRGB(pCol);
+  state.particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${pr},${pg},${pb},${p.alpha * 0.9})`;
+    ctx.fill();
+    // Glow
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r+2.5, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${pr},${pg},${pb},${p.alpha * 0.15})`;
+    ctx.fill();
+  });
+
+  // Fließ-Richtungspfeil (wenn Ventil offen)
+  if (state.valve && !state.equi && state.vAnim > 0.3) {
+    const dh = state.lvL - state.lvR;
+    const dir = dh > 0 ? 1 : -1;
+    const mx  = (x1 + x2) / 2 + dir * 24;
+    const ay  = py;
+    ctx.save();
+    ctx.globalAlpha = state.vAnim * 0.55;
+    ctx.fillStyle = scene.partC || '#7dd4fc';
+    ctx.beginPath();
+    const aw = 10, ah = 7;
+    if (dir > 0) {
+      ctx.moveTo(mx-aw, ay-ah/2);
+      ctx.lineTo(mx,    ay);
+      ctx.lineTo(mx-aw, ay+ah/2);
+    } else {
+      ctx.moveTo(mx+aw, ay-ah/2);
+      ctx.lineTo(mx,    ay);
+      ctx.lineTo(mx+aw, ay+ah/2);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// Ventil
+function drawValve(scene) {
+  const cx = G.vCX, cy = G.vCY;
+  const va  = state.vAnim;   // 0=zu, 1=offen
+  const r   = 15;
+  const col = scene.accentColor || '#2196f3';
+
+  // Äußerer Kreis
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  if (va < 0.5) {
+    ctx.fillStyle = 'rgba(239,68,68,0.15)';
+    ctx.strokeStyle = `rgba(239,68,68,${0.5+va*0.5})`;
+  } else {
+    ctx.fillStyle = hexA(col, 0.12 + va*0.08);
+    ctx.strokeStyle = hexA(col, 0.6 + va*0.35);
+  }
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+
+  // Gate-Balken (dreht sich von 90° → 0° beim Öffnen)
+  const angle = (1 - va) * Math.PI / 2;  // 90°→0°
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.roundRect(-r*0.6, -2.5, r*1.2, 5, 2);
+  ctx.fillStyle = va < 0.5 ? `rgba(239,68,68,${0.8-va*0.4})` : hexA(col, 0.8);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Ventil-Beschriftung + Strom-Label am Rohr (togglebar)
+function drawValveLabel(scene) {
+  const cx = G.vCX, cy = G.vCY, r = 15;
+  const va  = state.vAnim;
+  const col = scene.accentColor || '#2196f3';
+
+  // Ventilname unter dem Ventilsymbol
+  ctx.fillStyle = va < 0.5 ? 'rgba(239,68,68,0.75)' : hexA(col, 0.85);
+  ctx.font = '15px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(scene.gName, cx, cy + r + 20);
+
+  // Strom-Name über dem Rohr (wenn fließend)
+  if (va > 0.25 && !state.equi && Math.abs(state.lvL - state.lvR) > 0.005) {
+    const pipeAlpha = Math.min(1, va * 1.3);
+    const pCol = scene.partC || '#7dd4fc';
+    ctx.fillStyle = hexA(pCol, pipeAlpha * 0.95);
+    ctx.font = 'bold 17px Lato, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(scene.flName, (G.pX1 + G.pX2) / 2, G.pipeY - G.pipeH / 2 - 10);
+  }
+}
+function drawFormulaBox(scene) {
+  const col = scene.accentColor || '#2196f3';
+  const x = CW - 16, y = 16;
+  const txt = scene.formula;
+
+  ctx.font = 'bold 16px "Space Mono", monospace';
+  const tw = ctx.measureText(txt).width;
+  const bx = x - tw - 20, by = y, bw = tw + 24, bh = 28;
+
+  ctx.fillStyle = hexA(col, 0.08);
+  ctx.strokeStyle = hexA(col, 0.35);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 4);
+  ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = hexA(col, 0.9);
+  ctx.textAlign = 'right';
+  ctx.fillText(txt, x - 8, y + 19);
+}
+
+// ── Haupt-Render-Schleife ─────────────────────────────────
+
+function draw(ts) {
+  const dt = Math.min((ts - (state.lastT || ts)) / 1000, 0.05);
+  state.lastT = ts;
+
+  updatePhysics(dt);
+  spawnParticles(dt);
+  updateParticles(dt);
+
+  const sc = SCENES[state.sceneIdx];
+
+  drawBG();
+
+  // Reservoirs zeichnen
+  drawReservoir(G.lCX, G.lHW, state.lvL, sc, 'L');
+  drawReservoir(G.rCX, G.rHW, state.lvR, sc, 'R');
+
+  // Rohr (vor Ventil, damit Ventil oben liegt)
+  drawPipe(sc);
+
+  // Ventil
+  drawValve(sc);
+
+  // Labels (nur wenn eingeblendet)
+  if (state.showLabels) {
+    drawReservoirLabels(G.lCX, G.lHW, state.lvL, sc, 'L');
+    drawReservoirLabels(G.rCX, G.rHW, state.lvR, sc, 'R');
+    drawDeltaArrow(sc);
+    drawFlowMeter(sc);
+    drawValveLabel(sc);
+  }
+
+  // Rohrverbindungen immer sichtbar
+  drawPipeConnections(sc);
+
+  requestAnimationFrame(draw);
+}
+
+// Rohr zu Reservoir: kleine Verbinder
+function drawPipeConnections(scene) {
+  const wC = scene.wallC || 'rgba(150,200,255,0.5)';
+  ctx.strokeStyle = wC;
+  ctx.lineWidth = 2;
+  // Links: Wand bis Rohr
+  ctx.beginPath();
+  ctx.moveTo(G.lCX + G.lHW, G.pipeY - G.pipeH/2);
+  ctx.lineTo(G.pX1, G.pipeY - G.pipeH/2);
+  ctx.moveTo(G.lCX + G.lHW, G.pipeY + G.pipeH/2);
+  ctx.lineTo(G.pX1, G.pipeY + G.pipeH/2);
+  // Rechts
+  ctx.moveTo(G.rCX - G.rHW, G.pipeY - G.pipeH/2);
+  ctx.lineTo(G.pX2, G.pipeY - G.pipeH/2);
+  ctx.moveTo(G.rCX - G.rHW, G.pipeY + G.pipeH/2);
+  ctx.lineTo(G.pX2, G.pipeY + G.pipeH/2);
+  ctx.stroke();
+}
+
+// Fluss-Anzeige (Balken ganz unten)
+function drawFlowMeter(scene) {
+  const dh = state.lvL - state.lvR;
+  const flow = state.valve && !state.equi ? Math.max(0, dh) : 0;
+  if (flow < 0.003) return;
+
+  const col = scene.accentColor || '#2196f3';
+  const barW = 200, barH = 5;
+  const bx = (CW - barW) / 2, by = CH - 18;
+
+  // Background
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.beginPath(); ctx.roundRect(bx, by, barW, barH, 3); ctx.fill();
+
+  // Fill
+  const frac = Math.min(1, flow / 0.7);  // normalisiert
+  ctx.fillStyle = hexA(col, 0.75);
+  ctx.beginPath(); ctx.roundRect(bx, by, barW * frac, barH, 3); ctx.fill();
+
+  // Label
+  ctx.fillStyle = hexA(col, 0.65);
+  ctx.font = '13px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${scene.flSym}`, CW/2, by - 5);
+}
+
+// ── UI: Tabs, Buttons ─────────────────────────────────────
+
+const descEl   = document.getElementById('scene-desc');
+const statusEl = document.getElementById('status');
+const vBtn     = document.getElementById('valve-btn');
+
+function setScene(idx) {
+  state.sceneIdx = idx;
+  resetScene();
+
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', i===idx);
+  });
+
+  // Tabelle: aktive Spalte hervorheben
+  const hlClasses  = ['hl-w','hl-e','hl-h','hl-wx'];
+  document.querySelectorAll('td').forEach(td => {
+    td.classList.remove('hl-w','hl-e','hl-h','hl-wx');
+  });
+  const colClasses = ['col-w','col-e','col-h','col-wx'];
+  document.querySelectorAll(`td.${colClasses[idx]}`).forEach(td => {
+    td.classList.add(hlClasses[idx]);
+  });
+
+  descEl.textContent = SCENES[idx].cDesc;
+  updateStatus();
+  updateVentilName();
+}
+
+function resetScene() {
+  state.lvL      = lvlL0;
+  state.lvR      = lvlR0;
+  state.valve    = false;
+  state.vAnim    = 0;
+  state.particles= [];
+  state.equi     = false;
+  updateStatus();
+  updateVentilName();
+}
+
+function updateVentilName() {
+  const sc = SCENES[state.sceneIdx];
+  const name = sc.gName;
+  if (state.valve) {
+    vBtn.innerHTML = `🔓 &nbsp;${name} schließen`;
+    vBtn.classList.add('open');
+  } else {
+    vBtn.innerHTML = `🔒 &nbsp;${name} öffnen`;
+    vBtn.classList.remove('open');
+  }
+}
+
+function updateStatus() {
+  const sc  = SCENES[state.sceneIdx];
+  const dh  = Math.round((state.lvL - state.lvR) * 100);
+  if (state.equi) {
+    statusEl.textContent = sc.equiNote || 'Gleichgewicht erreicht.';
+  } else if (!state.valve) {
+    statusEl.textContent = `${sc.gName} geschlossen · ${sc.drSym} = ${dh}%`;
+  } else {
+    statusEl.textContent = `${sc.flSym} fließt · ${sc.drSym} = ${dh}%`;
+  }
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach((btn,i) => {
+  btn.addEventListener('click', () => setScene(i));
+});
+
+// Ventil-Button
+vBtn.addEventListener('click', () => {
+  if (state.equi) return;
+  state.valve = !state.valve;
+  updateVentilName();
+  updateStatus();
+});
+
+// Reset
+document.getElementById('reset-btn').addEventListener('click', () => {
+  resetScene();
+});
+
+// Beschriftung ein/aus
+const labelBtn = document.getElementById('label-btn');
+labelBtn.addEventListener('click', () => {
+  state.showLabels = !state.showLabels;
+  if (state.showLabels) {
+    labelBtn.textContent = '🏷️ \u00a0Beschriftung aus';
+    labelBtn.classList.remove('off');
+  } else {
+    labelBtn.textContent = '🏷️ \u00a0Beschriftung ein';
+    labelBtn.classList.add('off');
+  }
+});
+
+// Tabelle ein/aus
+const tableWrap = document.getElementById('analogy-wrap');
+const tableBtn  = document.getElementById('table-btn');
+tableBtn.addEventListener('click', () => {
+  const visible = tableWrap.style.display !== 'none';
+  tableWrap.style.display = visible ? 'none' : '';
+  if (visible) {
+    tableBtn.textContent = '📋 \u00a0Tabelle einblenden';
+    tableBtn.classList.add('off');
+  } else {
+    tableBtn.textContent = '📋 \u00a0Tabelle ausblenden';
+    tableBtn.classList.remove('off');
+  }
+});
+
+// Status regelmäßig aktualisieren
+setInterval(updateStatus, 200);
+
+// ── Regler ────────────────────────────────────────────────
+
+const speedLabels = ['', 'sehr langsam','langsam','langsam','mittel','mittel','mittel','schnell','schnell','sehr schnell','sehr schnell'];
+
+document.getElementById('sl-lvl-l').addEventListener('input', function() {
+  lvlL0 = this.value / 100;
+  document.getElementById('sl-lvl-l-val').textContent = this.value + ' %';
+  resetScene();
+});
+
+document.getElementById('sl-lvl-r').addEventListener('input', function() {
+  lvlR0 = this.value / 100;
+  document.getElementById('sl-lvl-r-val').textContent = this.value + ' %';
+  resetScene();
+});
+
+const capLabels = ['','klein','klein','mittel','mittel','mittel','groß','groß','groß','sehr groß','sehr groß'];
+const MIN_GAP  = 170;  // Mindestabstand zwischen den Reservoiren (px)
+
+function capValToHW(v) {
+  // Skala 1–10 → Halbbreite 35–115 px
+  return Math.round(35 + (v - 1) * (115 - 35) / 9);
+}
+
+document.getElementById('sl-cap-l').addEventListener('input', function() {
+  const v  = parseInt(this.value);
+  let newHW = capValToHW(v);
+  // Reservoire dürfen sich nicht überlappen
+  const maxHW = G.rCX - G.rHW - G.lCX - MIN_GAP;
+  newHW = Math.min(newHW, maxHW);
+  G.lHW = newHW;
+  updateGeometry();
+  document.getElementById('sl-cap-l-val').textContent = capLabels[v];
+  resetScene();
+});
+
+document.getElementById('sl-cap-r').addEventListener('input', function() {
+  const v  = parseInt(this.value);
+  let newHW = capValToHW(v);
+  const maxHW = G.rCX - (G.lCX + G.lHW) - MIN_GAP;
+  newHW = Math.min(newHW, maxHW);
+  G.rHW = newHW;
+  updateGeometry();
+  document.getElementById('sl-cap-r-val').textContent = capLabels[v];
+  resetScene();
+});
+
+document.getElementById('sl-speed').addEventListener('input', function() {
+  const v = parseInt(this.value);
+  // Exponentiell: langsam bleibt langsam, schnell wird deutlich schneller
+  const speedValues = [0, 0.04, 0.08, 0.15, 0.28, 0.45, 0.70, 1.2, 1.8, 2.6, 3.8];
+  kFlow = speedValues[v];
+  document.getElementById('sl-speed-val').textContent = speedLabels[v];
+});
+
+// ── Start ─────────────────────────────────────────────────
+setScene(0);
+requestAnimationFrame(draw);
+
+</script>
+</body>
+</html>
